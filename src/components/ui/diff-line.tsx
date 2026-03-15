@@ -42,8 +42,8 @@ function DiffLine({ type, code, className, ...props }: DiffLineProps) {
 
 export {
   DiffLine,
-  diffLine,
-  diffLinePrefix,
   type DiffLineProps,
   type DiffLineVariants,
+  diffLine,
+  diffLinePrefix,
 };

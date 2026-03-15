@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react";
-import { tv } from "tailwind-variants";
 import { twMerge } from "tailwind-merge";
+import { tv } from "tailwind-variants";
 
 const cardRoot = tv({
   base: ["border border-border-primary bg-bg-page p-5"],
@@ -40,16 +40,16 @@ function CardDescription({ className, ...props }: CardDescriptionProps) {
 }
 
 export {
-  CardRoot,
-  CardHeader,
-  CardTitle,
   CardDescription,
-  cardRoot,
-  cardHeader,
-  cardTitle,
-  cardDescription,
-  type CardRootProps,
-  type CardHeaderProps,
-  type CardTitleProps,
   type CardDescriptionProps,
+  CardHeader,
+  type CardHeaderProps,
+  CardRoot,
+  type CardRootProps,
+  CardTitle,
+  type CardTitleProps,
+  cardDescription,
+  cardHeader,
+  cardRoot,
+  cardTitle,
 };

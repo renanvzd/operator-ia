@@ -1,7 +1,7 @@
 "use client";
 
-import type { ComponentProps } from "react";
 import { Switch } from "@base-ui/react/switch";
+import type { ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
 
 const toggle = twMerge(
@@ -46,4 +46,4 @@ function Toggle({
   );
 }
 
-export { Toggle, toggle, type ToggleProps };
+export { Toggle, type ToggleProps, toggle };

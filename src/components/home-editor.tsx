@@ -102,12 +102,6 @@ function HomeEditor() {
           roast_my_code
         </Button>
       </div>
-
-      <div className="flex items-center gap-6 font-mono text-xs text-text-tertiary">
-        <span>2,847 codes roasted</span>
-        <span>·</span>
-        <span>avg score: 4.2/10</span>
-      </div>
     </div>
   );
 }

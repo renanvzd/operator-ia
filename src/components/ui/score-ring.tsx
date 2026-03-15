@@ -66,4 +66,4 @@ function ScoreRing({
   );
 }
 
-export { ScoreRing, scoreRing, type ScoreRingProps };
+export { ScoreRing, type ScoreRingProps, scoreRing };

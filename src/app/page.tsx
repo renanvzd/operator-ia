@@ -1,5 +1,9 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { HomeEditor } from "@/components/home-editor";
+import { HomeMetrics } from "@/components/home-metrics";
+import { HomeMetricsSkeleton } from "@/components/home-metrics-skeleton";
+import { HydrateClient, prefetch, trpc } from "@/trpc/server";
 
 const leaderboardData = [
   {
@@ -31,9 +35,19 @@ const leaderboardData = [
 ];
 
 export default function Home() {
+  prefetch(trpc.roast.getStats.queryOptions());
+
   return (
     <main className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center px-10 py-8">
       <HomeEditor />
+
+      <HydrateClient>
+        <Suspense fallback={<HomeMetricsSkeleton />}>
+          <div className="mt-6 flex w-full max-w-3xl justify-center md:justify-start">
+            <HomeMetrics />
+          </div>
+        </Suspense>
+      </HydrateClient>
 
       <div className="mt-16 flex w-full max-w-[960px] flex-col gap-6">
         <h2 className="font-mono text-[13px] text-text-tertiary">

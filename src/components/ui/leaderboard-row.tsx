@@ -35,4 +35,4 @@ function LeaderboardRow({
   );
 }
 
-export { LeaderboardRow, leaderboardRow, type LeaderboardRowProps };
+export { LeaderboardRow, type LeaderboardRowProps, leaderboardRow };
