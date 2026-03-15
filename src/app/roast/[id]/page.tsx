@@ -10,7 +10,7 @@ import { caller } from "@/trpc/server";
 
 type PageProps = {
   params: Promise<{
-    roastId: string;
+    id: string;
   }>;
 };
 
@@ -86,13 +86,13 @@ function mapRoastToResultData(roast: RoastRecord): ResultData {
   };
 }
 
-async function getCachedRoastResult(roastId: string) {
+async function getCachedRoastResult(id: string) {
   "use cache";
 
   cacheLife("hours");
-  cacheTag("roast-result", roastId);
+  cacheTag("roast-result", id);
 
-  const roast = await caller.roast.getById({ id: roastId });
+  const roast = await caller.roast.getById({ id });
 
   if (!roast) {
     return null;
@@ -104,8 +104,8 @@ async function getCachedRoastResult(roastId: string) {
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const { roastId } = await params;
-  const result = await getCachedRoastResult(roastId);
+  const { id } = await params;
+  const result = await getCachedRoastResult(id);
 
   if (!result) {
     return {
@@ -130,9 +130,9 @@ function SectionTitle({ prompt, title }: { prompt: string; title: string }) {
   );
 }
 
-export default async function ResultPage({ params }: PageProps) {
-  const { roastId } = await params;
-  const result = await getCachedRoastResult(roastId);
+export default async function RoastPage({ params }: PageProps) {
+  const { id } = await params;
+  const result = await getCachedRoastResult(id);
 
   if (!result) {
     notFound();

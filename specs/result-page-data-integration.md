@@ -2,7 +2,7 @@
 
 ## Resumo
 
-Substituir os mocks da pagina `src/app/result/[roastId]/page.tsx` por dados reais vindos de tRPC + Drizzle e mover o cache para uma funcao de dados dedicada usando Cache Components. A tela continua server-rendered, com revalidacao de 1 hora por roast.
+Substituir os mocks da pagina `src/app/roast/[id]/page.tsx` por dados reais vindos de tRPC + Drizzle e mover o cache para uma funcao de dados dedicada usando Cache Components. A tela continua server-rendered, com revalidacao de 1 hora por roast.
 
 ## Pesquisa realizada
 
@@ -19,7 +19,7 @@ Substituir os mocks da pagina `src/app/result/[roastId]/page.tsx` por dados reai
 | Abordagem | Descricao | Veredicto |
 |---|---|---|
 | `use cache` na page inteira | Cache de toda a rota | Funciona, mas mistura concern de rota com dados |
-| `use cache` em helper `getCachedRoastResult()` | Cache da leitura do roast por `roastId` | **Usar** |
+| `use cache` em helper `getCachedRoastResult()` | Cache da leitura do roast por `id` | **Usar** |
 
 ## Decisao
 
@@ -28,10 +28,10 @@ Adicionar `roast.getById` no router e criar um helper cacheado na pagina de resu
 Fluxo:
 
 ```text
-/result/[roastId] page (RSC)
-  -> getCachedRoastResult(roastId)
+/roast/[id] page (RSC)
+  -> getCachedRoastResult(id)
        -> "use cache" + cacheLife("hours")
-       -> caller.roast.getById({ id: roastId })
+       -> caller.roast.getById({ id })
        -> normaliza dados para a UI
 ```
 
@@ -42,10 +42,10 @@ Fluxo:
   - adicionar `getById` com input `z.string().uuid()`
   - buscar roast e `analysisItems` ordenados por `order`
   - retornar `null` quando o roast nao existir
-- Modificar `src/app/result/[roastId]/page.tsx`:
+- Modificar `src/app/roast/[id]/page.tsx`:
   - remover mocks
-  - criar `getCachedRoastResult(roastId)` com `use cache` e `cacheLife("hours")`
-  - usar `caller.roast.getById({ id: roastId })`
+  - criar `getCachedRoastResult(id)` com `use cache` e `cacheLife("hours")`
+  - usar `caller.roast.getById({ id })`
   - gerar `diff` simples a partir de `code` e `suggestedFix`
   - usar `notFound()` quando o roast nao existir
   - reutilizar o helper cacheado em `generateMetadata`
@@ -53,11 +53,11 @@ Fluxo:
 Pseudocodigo:
 
 ```ts
-async function getCachedRoastResult(roastId: string) {
+async function getCachedRoastResult(id: string) {
   "use cache"
   cacheLife("hours")
 
-  const roast = await caller.roast.getById({ id: roastId })
+  const roast = await caller.roast.getById({ id })
   if (!roast) return null
 
   return mapRoastToResultData(roast)

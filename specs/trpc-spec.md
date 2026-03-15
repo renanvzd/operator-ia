@@ -471,6 +471,6 @@ export function RoastResult({ id }: { id: string }) {
 - [x] Modificar `src/app/layout.tsx` — adicionar TRPCReactProvider envolvendo children
 - [x] Substituir dados hardcoded da home em `src/app/page.tsx` por `leaderboard.getLeaderboard`
 - [ ] Substituir dados hardcoded em `src/app/leaderboard/page.tsx` por prefetch de leaderboard.list
-- [ ] Substituir dados hardcoded em `src/app/result/[roastId]/page.tsx` por prefetch de roast.getById
+- [ ] Substituir dados hardcoded em `src/app/roast/[id]/page.tsx` por prefetch de roast.getById
 - [x] Rodar Biome (lint + format) em todos os arquivos criados/modificados
 - [ ] Testar build completo: prefetch no RSC → hydration no client → dados renderizados
