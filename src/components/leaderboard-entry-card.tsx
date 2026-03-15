@@ -1,12 +1,14 @@
 import type { ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
 import { CodeBlock } from "@/components/ui/code-block";
+import { normalizeLanguage } from "@/lib/languages";
 
 type LeaderboardEntryCardProps = ComponentProps<"article"> & {
   rank: number;
   score: string;
-  language: "javascript" | "typescript" | "sql" | "json";
+  language: string;
   code: string;
+  lineCount?: number;
 };
 
 async function LeaderboardEntryCard({
@@ -14,10 +16,12 @@ async function LeaderboardEntryCard({
   score,
   language,
   code,
+  lineCount,
   className,
   ...props
 }: LeaderboardEntryCardProps) {
-  const lineCount = code.split("\n").length;
+  const normalizedLanguage = normalizeLanguage(language) ?? "plaintext";
+  const resolvedLineCount = lineCount ?? code.split("\n").length;
 
   return (
     <article
@@ -41,11 +45,15 @@ async function LeaderboardEntryCard({
 
         <div className="flex flex-wrap items-center gap-3 font-mono text-xs">
           <span className="text-text-secondary">{language}</span>
-          <span className="text-text-tertiary">{lineCount} lines</span>
+          <span className="text-text-tertiary">{resolvedLineCount} lines</span>
         </div>
       </header>
 
-      <CodeBlock code={code} lang={language} className="w-full border-0" />
+      <CodeBlock
+        code={code}
+        lang={normalizedLanguage}
+        className="w-full border-0"
+      />
     </article>
   );
 }

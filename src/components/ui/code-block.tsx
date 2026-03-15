@@ -2,21 +2,36 @@ import type { ComponentProps } from "react";
 import type { BundledLanguage } from "shiki";
 import { codeToHtml } from "shiki";
 import { twMerge } from "tailwind-merge";
+import { LANGUAGES, normalizeLanguage } from "@/lib/languages";
 
 export interface CodeBlockProps extends ComponentProps<"div"> {
   code: string;
-  lang: BundledLanguage;
+  lang: string;
 }
 
 export interface CodeBlockHeaderProps extends ComponentProps<"div"> {
   filename?: string;
 }
 
+function escapeHtml(code: string) {
+  return code
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 async function CodeBlock({ code, lang, className, ...props }: CodeBlockProps) {
-  const html = await codeToHtml(code, {
-    lang,
-    theme: "vesper",
-  });
+  const normalizedLanguage = normalizeLanguage(lang) ?? "plaintext";
+  const shikiLanguage = LANGUAGES[normalizedLanguage].shikiId;
+
+  const html = shikiLanguage
+    ? await codeToHtml(code, {
+        lang: shikiLanguage as BundledLanguage,
+        theme: "vesper",
+      })
+    : `<pre class="shiki vesper" style="background-color:#101010;color:#ffffff"><code>${escapeHtml(code)}</code></pre>`;
 
   return (
     <div

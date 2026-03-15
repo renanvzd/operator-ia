@@ -1,13 +1,15 @@
 import { CodeBlock } from "@/components/ui/code-block";
+import { normalizeLanguage } from "@/lib/languages";
 
 type ResultCodePreviewProps = {
   code: string;
-  language: "javascript" | "typescript" | "sql" | "json";
+  language: string;
 };
 
 async function ResultCodePreview({ code, language }: ResultCodePreviewProps) {
   const lines = code.split("\n");
   let lineNumber = 0;
+  const normalizedLanguage = normalizeLanguage(language) ?? "plaintext";
 
   return (
     <div className="overflow-hidden border border-border-primary bg-bg-input">
@@ -19,7 +21,7 @@ async function ResultCodePreview({ code, language }: ResultCodePreviewProps) {
             return <span key={`line-${lineNumber}-${line}`}>{lineNumber}</span>;
           })}
         </div>
-        <CodeBlock code={code} lang={language} className="border-0" />
+        <CodeBlock code={code} lang={normalizedLanguage} className="border-0" />
       </div>
     </div>
   );

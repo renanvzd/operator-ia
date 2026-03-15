@@ -462,15 +462,14 @@ export function RoastResult({ id }: { id: string }) {
 - [x] Instalar dependencias: `pnpm add @trpc/server @trpc/client @trpc/tanstack-react-query @tanstack/react-query zod server-only client-only`
 - [x] Criar `src/trpc/init.ts` — initTRPC, context com `db`, baseProcedure
 - [x] Criar `src/trpc/routers/roast.ts` — procedure getStats (getById e create pendentes)
-- [ ] Criar `src/trpc/routers/leaderboard.ts` — procedure list com paginacao
+- [x] Criar `src/trpc/routers/leaderboard.ts` — procedure `getLeaderboard` da homepage
 - [x] Criar `src/trpc/routers/_app.ts` — appRouter mergeando sub-routers
 - [x] Criar `src/trpc/query-client.ts` — makeQueryClient factory
 - [x] Criar `src/trpc/client.tsx` — TRPCReactProvider, useTRPC
 - [x] Criar `src/trpc/server.tsx` — createTRPCOptionsProxy, HydrateClient, prefetch, caller
 - [x] Criar `src/app/api/trpc/[trpc]/route.ts` — fetch adapter handler
 - [x] Modificar `src/app/layout.tsx` — adicionar TRPCReactProvider envolvendo children
-- [x] Substituir dados hardcoded de stats em `src/app/page.tsx` por prefetch de roast.getStats
-- [ ] Substituir dados hardcoded em `src/app/page.tsx` por prefetch de leaderboard.list
+- [x] Substituir dados hardcoded da home em `src/app/page.tsx` por `leaderboard.getLeaderboard`
 - [ ] Substituir dados hardcoded em `src/app/leaderboard/page.tsx` por prefetch de leaderboard.list
 - [ ] Substituir dados hardcoded em `src/app/result/[roastId]/page.tsx` por prefetch de roast.getById
 - [x] Rodar Biome (lint + format) em todos os arquivos criados/modificados

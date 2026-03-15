@@ -1,12 +1,7 @@
 import type { Metadata } from "next";
+import { cacheLife } from "next/cache";
 import { LeaderboardEntryCard } from "@/components/leaderboard-entry-card";
-
-type LeaderboardEntry = {
-  rank: number;
-  score: string;
-  language: "javascript" | "typescript" | "sql" | "json";
-  code: string;
-};
+import { caller } from "@/trpc/server";
 
 export const metadata: Metadata = {
   title: "Shame Leaderboard | devroast",
@@ -14,45 +9,12 @@ export const metadata: Metadata = {
     "Browse the most roasted code submissions on devroast, rendered on the server for search-friendly leaderboard pages.",
 };
 
-const leaderboardEntries: LeaderboardEntry[] = [
-  {
-    rank: 1,
-    score: "1.2",
-    language: "javascript",
-    code: 'eval(prompt("enter code"))\ndocument.write(response)\n// trust the user lol',
-  },
-  {
-    rank: 2,
-    score: "1.8",
-    language: "typescript",
-    code: "if (x == true) { return true; }\nelse if (x == false) { return false; }\nelse { return !false; }",
-  },
-  {
-    rank: 3,
-    score: "2.1",
-    language: "sql",
-    code: "SELECT * FROM users WHERE 1=1\n-- TODO: add authentication",
-  },
-  {
-    rank: 4,
-    score: "2.8",
-    language: "json",
-    code: '{ "admin": true,\n  "password": "123456"\n}',
-  },
-  {
-    rank: 5,
-    score: "3.6",
-    language: "javascript",
-    code: "const retry = () => {\n  setTimeout(retry, 0);\n}",
-  },
-];
-
-async function getLeaderboardEntries() {
-  return leaderboardEntries;
-}
-
 export default async function LeaderboardPage() {
-  const entries = await getLeaderboardEntries();
+  "use cache";
+
+  cacheLife("hours");
+
+  const leaderboard = await caller.leaderboard.getLeaderboard({ limit: 20 });
 
   return (
     <main className="min-h-[calc(100vh-3.5rem)]">
@@ -72,9 +34,11 @@ export default async function LeaderboardPage() {
           </p>
 
           <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-text-tertiary">
-            <span>2,847 submissions</span>
+            <span>
+              {leaderboard.totalRoasts.toLocaleString("en-US")} submissions
+            </span>
             <span aria-hidden="true">&middot;</span>
-            <span>avg score: 4.2/10</span>
+            <span>avg score: {leaderboard.avgScore.toFixed(1)}/10</span>
           </div>
         </section>
 
@@ -82,13 +46,14 @@ export default async function LeaderboardPage() {
           className="flex flex-col gap-5"
           aria-label="Shame leaderboard entries"
         >
-          {entries.map((entry) => (
+          {leaderboard.entries.map((entry) => (
             <LeaderboardEntryCard
-              key={entry.rank}
+              key={entry.id}
               rank={entry.rank}
-              score={entry.score}
+              score={entry.score.toFixed(1)}
               language={entry.language}
               code={entry.code}
+              lineCount={entry.lineCount}
             />
           ))}
         </section>

@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { cacheLife, cacheTag } from "next/cache";
 import { notFound } from "next/navigation";
 import { ResultAnalysisCard } from "@/components/result-analysis-card";
 import { ResultCodePreview } from "@/components/result-code-preview";
 import { Button } from "@/components/ui/button";
 import { DiffLine } from "@/components/ui/diff-line";
 import { ScoreRing } from "@/components/ui/score-ring";
+import { caller } from "@/trpc/server";
 
 type PageProps = {
   params: Promise<{
@@ -13,10 +15,12 @@ type PageProps = {
 };
 
 type ResultData = {
+  id: string;
   score: number;
   verdict: string;
   quote: string;
-  language: "javascript" | "typescript" | "sql" | "json";
+  language: string;
+  lineCount: number;
   code: string;
   issues: {
     severity: "critical" | "warning" | "good";
@@ -29,115 +33,88 @@ type ResultData = {
   }[];
 };
 
-// const UUID_PATTERN =
-//   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+type RoastRecord = NonNullable<
+  Awaited<ReturnType<typeof caller.roast.getById>>
+>;
 
-const resultData: ResultData = {
-  score: 3.5,
-  verdict: "needs_serious_help",
-  quote:
-    '"this code looks like it was written during a power outage... in 2005."',
-  language: "javascript",
-  code: `function calculateTotal(items) {
-  var total = 0;
+function buildDiffLines(code: string, suggestedFix: string | null) {
+  const originalLines = code.split("\n");
+  const improvedLines = (suggestedFix ?? code).split("\n");
+  const maxLines = Math.max(originalLines.length, improvedLines.length);
+  const diff: ResultData["diff"] = [];
 
-  for (var i = 0; i < items.length; i++) {
-    total = total + items[i].price;
+  for (let index = 0; index < maxLines; index += 1) {
+    const originalLine = originalLines[index];
+    const improvedLine = improvedLines[index];
+
+    if (originalLine === improvedLine) {
+      if (originalLine !== undefined) {
+        diff.push({ type: "context", code: originalLine });
+      }
+      continue;
+    }
+
+    if (originalLine !== undefined) {
+      diff.push({ type: "removed", code: originalLine });
+    }
+
+    if (improvedLine !== undefined) {
+      diff.push({ type: "added", code: improvedLine });
+    }
   }
 
-  if (total > 100) {
-    console.log("discount applied");
-    total = total * 0.9;
+  return diff;
+}
+
+function mapRoastToResultData(roast: RoastRecord): ResultData {
+  return {
+    id: roast.id,
+    score: roast.score,
+    verdict: roast.verdict,
+    quote:
+      roast.roastQuote ??
+      '"this code looks like it was written during a power outage... in 2005."',
+    language: roast.language,
+    lineCount: roast.lineCount,
+    code: roast.code,
+    issues: roast.analysisItems.map((item) => ({
+      severity: item.severity,
+      title: item.title,
+      description: item.description,
+    })),
+    diff: buildDiffLines(roast.code, roast.suggestedFix),
+  };
+}
+
+async function getCachedRoastResult(roastId: string) {
+  "use cache";
+
+  cacheLife("hours");
+  cacheTag("roast-result", roastId);
+
+  const roast = await caller.roast.getById({ id: roastId });
+
+  if (!roast) {
+    return null;
   }
 
-  // TODO: handle tax calculation
-  // TODO: handle currency conversion
-
-  return total;
-}`,
-  issues: [
-    {
-      severity: "critical",
-      title: "using var instead of const/let",
-      description:
-        "`var` is function-scoped and harder to reason about. Modern JavaScript favors `const` for stable bindings and `let` for reassignment.",
-    },
-    {
-      severity: "warning",
-      title: "imperative loop pattern",
-      description:
-        "`for` loops are valid, but this accumulation reads better as a `reduce` and keeps the intent more obvious.",
-    },
-    {
-      severity: "good",
-      title: "clear early computation",
-      description:
-        "The discount rule is easy to spot quickly, which makes the happy path understandable even before refactoring.",
-    },
-    {
-      severity: "good",
-      title: "logic readability",
-      description:
-        "Even with some cleanup needed, the flow still follows a simple sequence: accumulate, apply discount, return result.",
-    },
-  ],
-  diff: [
-    {
-      type: "context",
-      code: "function calculateTotal(items) {",
-    },
-    {
-      type: "removed",
-      code: "  var total = 0;",
-    },
-    {
-      type: "removed",
-      code: "  for (var i = 0; i < items.length; i++) {",
-    },
-    {
-      type: "removed",
-      code: "    total = total + items[i].price;",
-    },
-    {
-      type: "removed",
-      code: "  }",
-    },
-    {
-      type: "added",
-      code: "  const total = items.reduce((sum, item) => sum + item.price, 0);",
-    },
-    {
-      type: "context",
-      code: "  return total;",
-    },
-    {
-      type: "context",
-      code: "}",
-    },
-  ],
-};
-
-// function isUuid(value: string) {
-//   return UUID_PATTERN.test(value);
-// }
-
-async function getResultData(_roastId: string) {
-  return resultData;
+  return mapRoastToResultData(roast);
 }
 
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { roastId } = await params;
+  const result = await getCachedRoastResult(roastId);
 
-  // if (!isUuid(roastId)) {
-  //   return {
-  //     title: "Roast Result | devroast",
-  //   };
-  // }
+  if (!result) {
+    return {
+      title: "Roast Result | devroast",
+    };
+  }
 
   return {
-    title: `Roast Result ${roastId.slice(0, 8)} | devroast`,
+    title: `Roast Result ${result.id.slice(0, 8)} | devroast`,
     description:
       "Server-rendered roast result with score breakdown, analysis cards, and suggested fixes.",
   };
@@ -155,13 +132,11 @@ function SectionTitle({ prompt, title }: { prompt: string; title: string }) {
 
 export default async function ResultPage({ params }: PageProps) {
   const { roastId } = await params;
+  const result = await getCachedRoastResult(roastId);
 
-  // if (!isUuid(roastId)) {
-  //   notFound();
-  // }
-
-  const result = await getResultData(roastId);
-  const lineCount = result.code.split("\n").length;
+  if (!result) {
+    notFound();
+  }
 
   return (
     <main className="min-h-[calc(100vh-3.5rem)]">
@@ -182,9 +157,9 @@ export default async function ResultPage({ params }: PageProps) {
             <div className="flex flex-wrap items-center gap-3 font-mono text-xs text-text-tertiary">
               <span>lang: {result.language}</span>
               <span aria-hidden="true">&middot;</span>
-              <span>{lineCount} lines</span>
+              <span>{result.lineCount} lines</span>
               <span aria-hidden="true">&middot;</span>
-              <span>ID: {roastId.slice(0, 8)}...</span>
+              <span>ID: {result.id.slice(0, 8)}...</span>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">

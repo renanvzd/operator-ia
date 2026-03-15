@@ -12,6 +12,11 @@ Brutally honest code reviews powered by AI.
 
 ## Padrões
 
+### Fluxo de feature
+- Antes de implementar feature nova, criar spec em `specs/`
+- Seguir o formato documentado em `specs/AGENTS.md`
+- Implementar apenas o escopo aprovado na spec/conversa atual
+
 ### Componentes UI
 Local: `src/components/ui/`
 - Named exports sempre
@@ -29,3 +34,4 @@ Local: `src/components/ui/`
 - `src/components/ui/` - componentes reutilizáveis
 - `src/components/` - componentes específicos do app
 - `src/app/` - rotas Next.js
+- `src/trpc/` - camada type-safe de API/back-end
