@@ -1,16 +1,16 @@
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
-  CardRoot,
-  CardHeader,
-  CardTitle,
   CardDescription,
+  CardHeader,
+  CardRoot,
+  CardTitle,
 } from "@/components/ui/card";
-import { Toggle } from "@/components/ui/toggle";
+import { CodeBlock, CodeBlockHeader } from "@/components/ui/code-block";
 import { DiffLine } from "@/components/ui/diff-line";
 import { LeaderboardRow } from "@/components/ui/leaderboard-row";
-import { CodeBlock } from "@/components/ui/code-block";
 import { ScoreRing } from "@/components/ui/score-ring";
+import { Toggle } from "@/components/ui/toggle";
 
 const sampleCode = `function calculateTotal(items) {
   var total = 0;
@@ -20,7 +20,7 @@ const sampleCode = `function calculateTotal(items) {
   return total;
 }`;
 
-export default function ComponentsPage() {
+export default async function ComponentsPage() {
   return (
     <main className="min-h-screen bg-bg-page p-8">
       <div className="mx-auto max-w-6xl">
@@ -188,11 +188,14 @@ export default function ComponentsPage() {
           <p className="mb-6 font-mono text-text-secondary">
             Bloco de código com syntax highlighting (shiki + vesper)
           </p>
-          <CodeBlock
-            code={sampleCode}
-            lang="javascript"
-            filename="calculate.js"
-          />
+          <div className="w-[560px] overflow-hidden border border-border-primary bg-bg-input">
+            <CodeBlockHeader filename="calculate.js" />
+            <CodeBlock
+              code={sampleCode}
+              lang="javascript"
+              className="border-0"
+            />
+          </div>
         </section>
       </div>
     </main>
