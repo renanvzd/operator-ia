@@ -18,6 +18,7 @@ type ResultData = {
   id: string;
   score: number;
   verdict: string;
+  roastQuote: string | null;
   quote: string;
   language: string;
   lineCount: number;
@@ -79,6 +80,7 @@ function mapRoastToResultData(roast: RoastRecord): ResultData {
     id: roast.id,
     score: roast.score,
     verdict: roast.verdict,
+    roastQuote: roast.roastQuote,
     quote:
       roast.roastQuote ??
       '"this code looks like it was written during a power outage... in 2005."',
@@ -118,13 +120,35 @@ export async function generateMetadata({
   if (!result) {
     return {
       title: "Roast Result | devroast",
+      description: "See how your code scored on devroast.",
     };
   }
 
+  const title = `${result.score.toFixed(1)}/10 - ${result.language} Roast - devroast`;
+  const socialTitle = `${result.score.toFixed(1)}/10 - ${result.language} Roast`;
+  const description =
+    result.roastQuote ?? "See how your code scored on devroast.";
+
   return {
-    title: `Roast Result ${result.id.slice(0, 8)} | devroast`,
-    description:
-      "Server-rendered roast result with score breakdown, analysis cards, and suggested fixes.",
+    title,
+    description,
+    openGraph: {
+      description,
+      images: [
+        {
+          height: 630,
+          url: `/roast/${id}/opengraph-image`,
+          width: 1200,
+        },
+      ],
+      title: socialTitle,
+    },
+    twitter: {
+      card: "summary_large_image",
+      description,
+      images: [`/roast/${id}/opengraph-image`],
+      title: socialTitle,
+    },
   };
 }
 
