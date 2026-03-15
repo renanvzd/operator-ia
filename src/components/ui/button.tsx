@@ -3,7 +3,7 @@ import { tv, type VariantProps } from "tailwind-variants";
 
 const button = tv({
   base: [
-    "inline-flex items-center justify-center font-mono transition-colors",
+    "inline-flex items-center justify-center font-mono transition-colors enabled:cursor-pointer disabled:cursor-not-allowed",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-accent-green",
     "disabled:pointer-events-none disabled:opacity-50",
   ],
@@ -41,4 +41,4 @@ function Button({ variant, size, className, ...props }: ButtonProps) {
   return <button className={button({ variant, size, className })} {...props} />;
 }
 
-export { Button, button, type ButtonProps, type ButtonVariants };
+export { Button, type ButtonProps, type ButtonVariants, button };

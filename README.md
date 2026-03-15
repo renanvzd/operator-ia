@@ -20,11 +20,35 @@ git clone <repo-url>
 # Install dependencies
 pnpm install
 
+# Start the database
+docker compose up -d
+
 # Start the development server
 pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Database
+
+The project uses PostgreSQL + Drizzle ORM.
+
+```bash
+# Generate migrations
+pnpm db:generate
+
+# Apply migrations
+pnpm db:migrate
+
+# Open Drizzle Studio
+pnpm db:studio
+```
+
+Local database connection lives in `.env.local`:
+
+```bash
+DATABASE_URL=postgresql://devroast:devroast@localhost:5432/devroast
+```
 
 ## How It Works
 
@@ -37,7 +61,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 - Next.js
 - Tailwind CSS
-- 
+- Drizzle ORM
+- PostgreSQL
 - Base UI
 - Shiki (syntax highlighting)
 
