@@ -3,9 +3,9 @@ import { cacheLife, cacheTag } from "next/cache";
 import { notFound } from "next/navigation";
 import { ResultAnalysisCard } from "@/components/result-analysis-card";
 import { ResultCodePreview } from "@/components/result-code-preview";
-import { Button } from "@/components/ui/button";
 import { DiffLine } from "@/components/ui/diff-line";
 import { ScoreRing } from "@/components/ui/score-ring";
+import { normalizeLanguage } from "@/lib/languages";
 import { caller } from "@/trpc/server";
 
 type PageProps = {
@@ -36,6 +36,14 @@ type ResultData = {
 type RoastRecord = NonNullable<
   Awaited<ReturnType<typeof caller.roast.getById>>
 >;
+
+const verdictToneClassName: Record<string, string> = {
+  needs_serious_help: "text-accent-red",
+  rough_around_edges: "text-accent-red",
+  decent_code: "text-accent-amber",
+  solid_work: "text-accent-green",
+  exceptional: "text-accent-green",
+};
 
 function buildDiffLines(code: string, suggestedFix: string | null) {
   const originalLines = code.split("\n");
@@ -92,13 +100,13 @@ async function getCachedRoastResult(id: string) {
   cacheLife("hours");
   cacheTag("roast-result", id);
 
-  const roast = await caller.roast.getById({ id });
+  try {
+    const roast = await caller.roast.getById({ id });
 
-  if (!roast) {
+    return mapRoastToResultData(roast);
+  } catch {
     return null;
   }
-
-  return mapRoastToResultData(roast);
 }
 
 export async function generateMetadata({
@@ -138,6 +146,10 @@ export default async function RoastPage({ params }: PageProps) {
     notFound();
   }
 
+  const normalizedLanguage = normalizeLanguage(result.language) ?? "plaintext";
+  const verdictTone =
+    verdictToneClassName[result.verdict] ?? "text-text-secondary";
+
   return (
     <main className="min-h-[calc(100vh-3.5rem)]">
       <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-10 px-5 py-10 md:px-10 lg:px-20">
@@ -145,7 +157,9 @@ export default async function RoastPage({ params }: PageProps) {
           <ScoreRing score={result.score} className="shrink-0" />
 
           <div className="flex flex-1 flex-col gap-4">
-            <div className="inline-flex w-fit items-center gap-2 font-mono text-[13px] text-accent-red">
+            <div
+              className={`inline-flex w-fit items-center gap-2 font-mono text-[13px] ${verdictTone}`}
+            >
               <span className="h-2 w-2 rounded-full bg-current" />
               <span>verdict: {result.verdict}</span>
             </div>
@@ -163,12 +177,9 @@ export default async function RoastPage({ params }: PageProps) {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <Button variant="secondary" size="sm" type="button">
-                share_roast
-              </Button>
-              <Button variant="secondary" size="sm" type="button">
-                copy_link
-              </Button>
+              <span className="font-mono text-xs text-text-tertiary">
+                roast mode share actions are not available yet
+              </span>
             </div>
           </div>
         </section>
@@ -203,7 +214,7 @@ export default async function RoastPage({ params }: PageProps) {
 
           <div className="overflow-hidden border border-border-primary bg-bg-input">
             <div className="flex h-10 items-center border-b border-border-primary px-4 font-mono text-xs font-medium text-text-secondary">
-              your_code.ts -&gt; improved_code.ts
+              {`your_code.${normalizedLanguage} -> improved_code.${normalizedLanguage}`}
             </div>
 
             <div className="flex flex-col py-1">

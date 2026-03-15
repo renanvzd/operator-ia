@@ -1,5 +1,7 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { CodeEditor } from "@/components/code-editor";
 import { Button } from "@/components/ui/button";
@@ -10,6 +12,7 @@ import {
   LANGUAGES,
   type SupportedLanguage,
 } from "@/lib/languages";
+import { useTRPC } from "@/trpc/client";
 
 const sampleCode = `function calculateTotal(items) {
   var total = 0;
@@ -39,6 +42,17 @@ function HomeEditor() {
     const source = manualLanguage ? "manual" : "auto";
     return `${LANGUAGES[currentLanguage].label} · ${source}`;
   }, [currentLanguage, manualLanguage]);
+  const router = useRouter();
+  const trpc = useTRPC();
+  const createRoast = useMutation(
+    trpc.roast.create.mutationOptions({
+      onSuccess(data) {
+        router.push(`/roast/${data.id}`);
+      },
+    }),
+  );
+
+  const isDisabled = !code.trim() || createRoast.isPending;
 
   return (
     <div className="flex w-full max-w-3xl flex-col items-center gap-8">
@@ -76,6 +90,12 @@ function HomeEditor() {
             label="roast mode"
           />
 
+          <span className="font-mono text-xs text-text-tertiary">
+            {roastMode
+              ? "// sarcasm level: maximum"
+              : "// sarcasm level: restrained"}
+          </span>
+
           <label className="flex items-center gap-2 font-mono text-xs text-text-secondary">
             <span>language</span>
             <select
@@ -98,10 +118,27 @@ function HomeEditor() {
           </label>
         </div>
 
-        <Button variant="primary" size="lg" disabled={!code.trim()}>
-          roast_my_code
+        <Button
+          variant="primary"
+          size="lg"
+          disabled={isDisabled}
+          onClick={() => {
+            createRoast.mutate({
+              code,
+              language: currentLanguage,
+              roastMode,
+            });
+          }}
+        >
+          {createRoast.isPending ? "roasting..." : "roast_my_code"}
         </Button>
       </div>
+
+      {createRoast.isError ? (
+        <p className="w-full font-mono text-xs text-accent-red" role="alert">
+          {createRoast.error.message}
+        </p>
+      ) : null}
     </div>
   );
 }
